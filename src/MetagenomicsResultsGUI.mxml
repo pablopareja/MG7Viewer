@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" backgroundColor="#3D3E3E">
+	<fx:Declarations>
+		<!-- Place non-visual elements (e.g., services, value objects) here -->
+	</fx:Declarations>
+	<s:HGroup  
+			  verticalAlign="middle" 
+			  paddingTop="0" 
+			  paddingBottom="0" 
+			  paddingRight="0" 
+			  paddingLeft="0" 
+			  left="15" 
+			  top="15" 
+			  right="15" 
+			  height="80">
+		<mx:Canvas 
+				   cornerRadius="15" 
+				   backgroundColor="#FFFFFF" 
+				   height="100%" width="242">
+					<mx:SWFLoader id="era7Logo"
+						  source=""
+						  buttonMode="true"
+						  mouseChildren="false"
+						  useHandCursor="true" 
+						  scaleContent="true" 
+						  left="0" 
+						  top="10"
+						  />
+		</mx:Canvas>
+		
+		<mx:Canvas width="100%" 
+				   cornerRadius="15" 
+				   backgroundColor="#52A2D2" 
+				   height="100%">
+			<mx:SWFLoader id="bg7Logo"
+				source=""
+				right="10" 
+				verticalCenter="0" 
+			/>			
+		</mx:Canvas>
+	</s:HGroup>
+</s:Application>
