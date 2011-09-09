@@ -1,10 +1,305 @@
 <?xml version="1.0" encoding="utf-8"?>
 <s:Application xmlns:fx="http://ns.adobe.com/mxml/2009" 
 			   xmlns:s="library://ns.adobe.com/flex/spark" 
-			   xmlns:mx="library://ns.adobe.com/flex/mx" minWidth="955" minHeight="600" backgroundColor="#3D3E3E">
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   minWidth="955" 
+			   minHeight="600" 
+			   implements="com.era7.communication.interfaces.ServerCallable"			   
+			   backgroundColor="#3D3E3E"
+			   creationComplete="application1_creationCompleteHandler(event)" 
+			   xmlns:data="flare.vis.data.*" 
+			   xmlns:vis="flare.vis.*" 
+			   xmlns:flex="flare.flex.*" 
+			   xmlns:gui="com.era7.bioinfo.metagenomics.gui.*" 
+			   xmlns:metagenomics="com.era7.bioinfo.gui.metagenomics.*">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="15" paddingRight="15" paddingTop="15" paddingBottom="15"/>
+	</s:layout>	
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
+		<fx:XML id="graphmlXML" source="lalala.graphml"/>
 	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.era7.bioinfo.metagenomics.comm.MetagenomicsMapper;
+			import com.era7.bioinfo.metagenomics.comm.RequestList;
+			import com.era7.bioinfo.xml.metagenomics.ReadResult;
+			import com.era7.bioinfo.xml.metagenomics.Sample;
+			import com.era7.bioinfo.xml.ncbi.NCBITaxonomyNode;
+			import com.era7.communication.managers.MainManager;
+			import com.era7.communication.xml.Request;
+			import com.era7.communication.xml.Response;
+			import com.era7.util.debug.Debugger;
+			
+			import flare.animate.Transitioner;
+			import flare.data.DataSchema;
+			import flare.data.DataSet;
+			import flare.data.converters.GraphMLConverter;
+			import flare.display.RectSprite;
+			import flare.display.TextSprite;
+			import flare.scale.ScaleType;
+			import flare.util.Shapes;
+			import flare.vis.Visualization;
+			import flare.vis.controls.DragControl;
+			import flare.vis.controls.ExpandControl;
+			import flare.vis.controls.HoverControl;
+			import flare.vis.data.Data;
+			import flare.vis.data.DataList;
+			import flare.vis.data.DataSprite;
+			import flare.vis.data.EdgeSprite;
+			import flare.vis.data.NodeSprite;
+			import flare.vis.data.TreeBuilder;
+			import flare.vis.events.SelectionEvent;
+			import flare.vis.operator.encoder.ColorEncoder;
+			import flare.vis.operator.encoder.PropertyEncoder;
+			import flare.vis.operator.encoder.ShapeEncoder;
+			import flare.vis.operator.encoder.SizeEncoder;
+			import flare.vis.operator.filter.GraphDistanceFilter;
+			import flare.vis.operator.label.RadialLabeler;
+			import flare.vis.operator.layout.AxisLayout;
+			import flare.vis.operator.layout.CirclePackingLayout;
+			import flare.vis.operator.layout.DendrogramLayout;
+			import flare.vis.operator.layout.ForceDirectedLayout;
+			import flare.vis.operator.layout.IndentedTreeLayout;
+			import flare.vis.operator.layout.Layout;
+			import flare.vis.operator.layout.NodeLinkTreeLayout;
+			import flare.vis.operator.layout.RadialTreeLayout;
+			import flare.vis.operator.layout.TreeMapLayout;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.events.ListEvent;
+			
+			import spark.events.IndexChangeEvent;
+			
+			
+			[Bindable]
+			protected var samplesDataProvider:XML = null;	
+						
+			protected var treeDataSet:DataSet = null;
+					
+			
+			protected var metagenomicsMapper:MetagenomicsMapper = null;
+			
+			public static const BASE_STATE:String = "State1";		
+						
+			protected var selectedTaxId:int = 1; 
+			
+			protected var textFormat:TextFormat;
+			
+			protected var indentedTreeLayout:IndentedTreeLayout =  new IndentedTreeLayout();	
+			protected var radialLayout:RadialTreeLayout = new RadialTreeLayout();
+			protected var dendogramLayout:DendrogramLayout = new DendrogramLayout();
+			protected var bubblesLayout:CirclePackingLayout = new CirclePackingLayout();
+			protected var treeLayout:TreeMapLayout = new TreeMapLayout();
+			protected var currentLayout:Layout;
+			
+			protected var converter:GraphMLConverter;
+			
+			
+			protected function application1_creationCompleteHandler(event:FlexEvent):void
+			{	
+				
+				//Alert.show("adjflsakdjfsa");
+				
+				readResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onReadResultsDataGridItemClick);
+				taxonomyResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onTaxonomyResultsDataGridItemClick);
+				
+				metagenomicsMapper = new MetagenomicsMapper();
+								
+				//throw new Error("asdlfjsakldf");
+				MainManager.ADD_SESSION_ID_TO_REQUEST = false;
+				MainManager.DEBUG_MODE = true;
+				MainManager.REQUEST_TIMEOUT = 3600;
+				
+				converter = new GraphMLConverter();
+				
+				textFormat = new TextFormat();
+				textFormat.color = 0xff000000;
+				textFormat.size = 12;
+				textFormat.font = "Arial, Verdana, Helvetica";
+				
+				metagenomicsMapper.getSamples(this);
+				
+				currentLayout = indentedTreeLayout;
+				
+				//treeDataSet = converter.parse(graphmlXML);
+				
+				//updateVisualization();
+								
+			}
+			
+			
+			//----------------------------------------------------------------------------
+			//---------------------------SERVER COMMUNICATION-----------------------------
+			//----------------------------------------------------------------------------
+			/**
+			 * 	PROCESS SUCCESSFUL RESPONSE
+			 */
+			public function processSuccessfulResponse(response:Response):void{
+				
+				if(response.getMethod() == RequestList.GET_SAMPLES_REQUEST){
+					
+					samplesDataProvider = XML(response.getContent().samples[0]);
+					samplesComboBox.selectedIndex = 0;
+					
+					getCurrentSampleTree();
+					
+				}else if(response.getMethod() == RequestList.GET_WHOLE_TAXONOMY_TREE_FOR_SAMPLE_REQUEST){					
+					
+					treeDataSet = converter.parse(response.getContent().graphml[0]);
+					updateVisualization();
+					
+				}else if(response.getMethod() == RequestList.GET_SAMPLE_READ_RESULTS_FOR_TAXON_REQUEST){
+					
+					readResultsDataGrid.setXMLSource(response.getContent().read_results[0]);
+					
+				}else if(response.getMethod() == RequestList.GET_READ_RESULT_REQUEST){
+					
+					readResultViewer.setReadResult(new ReadResult(XML(response.getContent().child(ReadResult.TAG_NAME)[0])));
+					
+				}
+			}
+			/**
+			 * 	PROCESS ERROR RESPONSE
+			 */
+			public function processErrorResponse(response:Response):void{
+				Alert.show(response.getErrorItem().getDescription());
+			}
+			/**
+			 * 	PROCESS NO SESSION RESPONSE
+			 */
+			public function processNoSessionResponse(response:Response):void{}
+			/**
+			 * 	PROCESS REQUEST TIMEOUT
+			 */
+			public function processRequestTimeout(request:Request):void{}
+			
+			//----------------------------------------------------------------------------
+			//----------------------------------------------------------------------------
+						
+			
+			protected function updateVisualization():void{
+				
+				flareVis.visualization = new Visualization();
+				
+				flareVis.visualization.continuousUpdates = false;
+				
+				var data:Data = Data.fromDataSet(treeDataSet);
+				flareVis.visualization.data = data;
+									
+								
+				currentLayout.layoutAnchor = new Point(20, 20);
+				
+				flareVis.visualization.data.nodes.visit(function(ns:NodeSprite):void {
+					
+					var ts:TextSprite = new TextSprite(ns.data.scientific_name,textFormat, TextSprite.DEVICE);
+					ts.horizontalAnchor = TextSprite.LEFT;
+					ts.verticalAnchor = TextSprite.CENTER; 					
+					ts.textField.antiAliasType = AntiAliasType.ADVANCED;					
+					ts.buttonMode = true;	
+					ts.mouseChildren = false;
+					ts.useHandCursor = true;
+					ns.addChild(ts);
+					
+					ns.buttonMode = true; 
+					ns.addEventListener(MouseEvent.CLICK, onNodeClick);
+					
+					if(ns.data.absolute_value >= 1){
+						
+						ts.bold = true;						
+					}else{
+						ts.bold = false;
+						
+					}
+					
+				});
+				
+				//operators
+				flareVis.visualization.operators.add(currentLayout);				
+				
+				var expandControl:ExpandControl = new ExpandControl(NodeSprite);
+				flareVis.visualization.controls.add(expandControl);
+				//expandControl.object.addEventListener(MouseEvent.MOUSE_DOWN, onNodeMouseDown);
+				
+				var sizeEncoder:SizeEncoder = new SizeEncoder("data.absolute_value", Data.NODES, null );		 
+				sizeEncoder.scale.scaleType = ScaleType.LOG; 	
+				flareVis.visualization.operators.add(sizeEncoder);
+				flareVis.visualization.operators.add(new ColorEncoder("data.absolute_value", Data.NODES,
+					"fillColor", ScaleType.LOG));
+				
+				flareVis.visualization.update();
+				
+				flareVis.width = flareVis.visWidth;
+				flareVis.height = flareVis.visHeight;
+			}
+
+			
+			private function onNodeClick(event:MouseEvent):void{
+				
+				var ns:NodeSprite = event.currentTarget as NodeSprite;
+				selectedTaxId = ns.data.tax_id;
+				
+				var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
+				var taxon:NCBITaxonomyNode = new NCBITaxonomyNode();
+				taxon.taxId = ""+selectedTaxId;
+				
+				metagenomicsMapper.getSampleReadResultsForTaxon(sample,taxon,this);
+			}
+			
+
+			protected function getCurrentSampleTree():void
+			{
+				metagenomicsMapper.getWholeTaxonomyTreeForSample(new Sample(XML(samplesComboBox.selectedItem)),this);
+			}
+
+			protected function samplesComboBox_changeHandler(event:ListEvent):void
+			{
+				getCurrentSampleTree();
+			}
+
+
+			protected function layoutComboBox_changeHandler(event:IndexChangeEvent):void
+			{
+				updateLayout(layoutComboBox.selectedItem);
+			}
+			
+			protected function updateLayout(layoutValue:String):void{
+				if(layoutValue == "Indented"){
+					currentLayout = indentedTreeLayout;
+				}else if(layoutValue == "Radial"){
+					currentLayout = radialLayout;
+				}else if(layoutValue == "Dendogram"){
+					currentLayout = dendogramLayout;
+				}else if(layoutValue == "Bubbles"){
+					currentLayout = bubblesLayout;
+				}else if(layoutValue == "Tree"){
+					currentLayout = treeLayout;
+				}
+				
+				flareVis.visualization.operators.add(currentLayout);	
+					
+			    flareVis.visualization.update();
+			}
+			
+			
+			private function onReadResultsDataGridItemClick(event:ListEvent):void{
+				if(readResultsDataGrid.dataGrid.selectedItem != null){
+					var temp:ReadResult = new ReadResult(XML(readResultsDataGrid.dataGrid.selectedItem));
+					metagenomicsMapper.getReadResult(temp,this);
+				}
+			}
+			private function onTaxonomyResultsDataGridItemClick(event:ListEvent):void{
+				if(taxonomyResultsDataGrid.dataGrid.selectedItem != null){
+					var taxon:NCBITaxonomyNode = new NCBITaxonomyNode(XML(taxonomyResultsDataGrid.dataGrid.selectedItem));
+					var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
+					metagenomicsMapper.getSampleReadResultsForTaxon(sample,taxon,this);
+				}
+			}
+
+		]]>
+	</fx:Script>
 	<s:HGroup  
 			  verticalAlign="middle" 
 			  paddingTop="0" 
@@ -14,7 +309,7 @@
 			  left="15" 
 			  top="15" 
 			  right="15" 
-			  height="80">
+			  height="80" width="100%">
 		<mx:Canvas 
 				   cornerRadius="15" 
 				   backgroundColor="#FFFFFF" 
@@ -41,4 +336,76 @@
 			/>			
 		</mx:Canvas>
 	</s:HGroup>
+	<mx:ComboBox x="15" y="118" 
+				id="samplesComboBox"
+				dataProvider="{samplesDataProvider.sample}"
+				labelField="name" 
+				change="samplesComboBox_changeHandler(event)"/>
+	<mx:HDividedBox width="100%"
+					height="100%">
+		<mx:TabNavigator width="100%" 
+						 height="100%">
+			<mx:VBox id="graphPanel" 
+					  verticalAlign="top" 
+					  horizontalAlign="left" 
+					  width="100%"
+					  height="100%"
+					  label="Visualizations" 
+					  paddingLeft="10" 
+					  paddingRight="10" 
+					  paddingBottom="10" 
+					  paddingTop="10">
+				<s:HGroup verticalAlign="middle">
+					<s:Label text="Layout" fontWeight="bold"/>
+					<s:ComboBox id="layoutComboBox" 
+								labelField="name" 
+								change="layoutComboBox_changeHandler(event)"
+								selectedIndex="0">
+						<s:dataProvider>
+							<mx:ArrayList>
+								<fx:String>Indented</fx:String>
+								<fx:String>Radial</fx:String>
+								<fx:String>Dendogram</fx:String>
+								<fx:String>Bubbles</fx:String>
+								<fx:String>Tree</fx:String>
+							</mx:ArrayList>
+						</s:dataProvider>		
+					</s:ComboBox>
+				</s:HGroup>
+				
+				<mx:Canvas id="treeCanvas" 
+						   backgroundColor="0x666666"
+						   width="100%"
+						   height="100%">
+					<flex:FlareVis id="flareVis" 
+								   backgroundColor="0xeeeFFF" 
+								   left="0" 
+								   top="0"			
+								   />  				
+				</mx:Canvas>
+			</mx:VBox>
+			<metagenomics:TaxonomyResultsDataGrid id="taxonomyResultsDataGrid"
+												  width="100%"
+												  height="100%"
+												  label="Table"
+												  paddingBottom="10"
+												  paddingLeft="10"
+												  paddingRight="10"
+												  paddingTop="10"/>
+		</mx:TabNavigator>		
+		<s:VGroup width="100%" 
+				  height="100%">
+			<gui:ReadResultsDataGrid id="readResultsDataGrid" 
+									 width="100%" 
+									 height="100%"/>
+			<metagenomics:ReadResultViewer id="readResultViewer"
+										   width="100%"/>
+			
+		</s:VGroup>
+		
+	</mx:HDividedBox>	
+	
+	<!--<s:NumericStepper minimum="1" maximum="5" stepSize="1" id="depthStepper" top="118" left="193"/>
+	<s:Button label="get taxonomy" left="242" top="118" click="button1_clickHandler(event)"/>
+	<s:Button label="get taxonomy for sample" left="372" top="118" click="button2_clickHandler(event)"/>-->		
 </s:Application>
