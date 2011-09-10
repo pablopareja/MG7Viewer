@@ -12,6 +12,10 @@ package com.era7.bioinfo.metagenomics.comm
 	import com.era7.communication.xml.Request;
 	
 	import flash.net.FileFilter;
+	import flash.net.URLRequest;
+	import flash.net.URLRequestMethod;
+	import flash.net.URLVariables;
+	import flash.net.navigateToURL;
 
 	public class MetagenomicsMapper extends BasicMapper
 	{
@@ -64,6 +68,20 @@ package com.era7.bioinfo.metagenomics.comm
 			
 		}
 		
+		public function getSampleTaxonomyResultsTable(sample:Sample,
+													  serverCallable:ServerCallable):void{
+			
+			var request:Request = new Request();
+			request.setMethod(RequestList.GET_SAMPLE_TAXONOMY_RESULTS_TABLE_REQUEST);
+			
+			var params:Parameters = new Parameters();
+			params.addParametersContent(sample.getContent());
+			request.setParameters(params);
+			
+			mainManager.loadRequest(request, serverCallable, UrlManager.GET_SAMPLE_TAXONOMY_RESULTS_TABLE_URL);
+			
+		}
+		
 		public function getReadResult(readResult:ReadResult,
 									  serverCallable:ServerCallable):void{
 			
@@ -91,6 +109,31 @@ package com.era7.bioinfo.metagenomics.comm
 			request.setParameters(params);
 			
 			mainManager.loadRequest(request, serverCallable, UrlManager.GET_SAMPLE_READ_RESULTS_FOR_TAXON_URL);
+			
+		}
+		
+		public function downloadSampleReadResultsForTaxon(sample:Sample,
+													 taxonNode:NCBITaxonomyNode,
+													 serverCallable:ServerCallable):void{
+			
+			var request:Request = new Request();
+			request.setMethod(RequestList.DOWNLOAD_SAMPLE_READ_RESULTS_FOR_TAXON_REQUEST);
+			
+			var params:Parameters = new Parameters();
+			params.addParametersContent(sample.getContent());
+			params.addParametersContent(taxonNode.getContent());
+			params.addParametersContent(<file_name>ProteinMultifasta</file_name>);
+			request.setParameters(params);
+			
+			var urlRequest:URLRequest = new URLRequest(UrlManager.DOWNLOAD_SAMPLE_READ_RESULTS_FOR_TAXON_URL);
+			
+			urlRequest.method = URLRequestMethod.POST;
+			var vars:URLVariables = new URLVariables();		
+			
+			vars.request = request.toString();
+			urlRequest.data = vars; 
+			
+			navigateToURL(urlRequest,"_self");
 			
 		}
 	}
