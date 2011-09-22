@@ -322,6 +322,7 @@
 					
 				} */			
 				
+								
 				flareVis.visualization.operators.add(currentLayout);				
 			    flareVis.visualization.update();
 				
@@ -330,16 +331,24 @@
 			
 			
 			private function onReadResultsDataGridItemClick(event:ListEvent):void{
+				
 				if(readResultsDataGrid.dataGrid.selectedItem != null){
+					
 					var temp:ReadResult = new ReadResult(XML(readResultsDataGrid.dataGrid.selectedItem));
 					metagenomicsMapper.getReadResult(temp,this);
+					
 				}
 			}
 			private function onTaxonomyResultsDataGridItemClick(event:ListEvent):void{
+				
 				if(taxonomyResultsDataGrid.dataGrid.selectedItem != null){
+					
+					selectedTaxonLabel.text = taxon.scientificName;
+					
 					var taxon:NCBITaxonomyNode = new NCBITaxonomyNode(XML(taxonomyResultsDataGrid.dataGrid.selectedItem));
 					var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
 					metagenomicsMapper.getSampleReadResultsForTaxon(sample,taxon,this);
+					
 				}
 			}
 			
