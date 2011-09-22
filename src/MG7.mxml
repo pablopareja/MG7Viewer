@@ -343,12 +343,11 @@
 				
 				if(taxonomyResultsDataGrid.dataGrid.selectedItem != null){
 					
-					selectedTaxonLabel.text = taxon.scientificName;
-					
 					var taxon:NCBITaxonomyNode = new NCBITaxonomyNode(XML(taxonomyResultsDataGrid.dataGrid.selectedItem));
 					var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
 					metagenomicsMapper.getSampleReadResultsForTaxon(sample,taxon,this);
 					
+					selectedTaxonLabel.text = taxon.scientificName;
 				}
 			}
 			
