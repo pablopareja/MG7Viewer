@@ -99,7 +99,7 @@
 			protected var currentLayout:Layout;						
 			
 			protected var converter:GraphMLConverter;
-			
+			 
 			
 			protected function baseStateEnterStateHandler(event:Event):void
 			{	

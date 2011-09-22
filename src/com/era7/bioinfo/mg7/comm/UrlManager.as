@@ -13,5 +13,6 @@ package com.era7.bioinfo.mg7.comm
 		public static const GET_WHOLE_TAXONOMY_TREE_FOR_SAMPLE:String = "GetWholeTaxonomyTreeForSample";
 		
 		public static const DOWNLOAD_SAMPLE_READ_RESULTS_FOR_TAXON_URL:String = "DownloadSampleReadResultsForTaxon";
+	
 	}
 }

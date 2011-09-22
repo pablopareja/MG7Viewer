@@ -16,8 +16,7 @@ package com.era7.bioinfo.mg7
 		[Embed(source="../../../../../assets/MG7_logo_drcha.png")]
 		public static var mg7Right:Class;
 		
-		
-		
+				
 		
 	}
 }

@@ -17,6 +17,7 @@
 				xml = source;
 			}
 			
+			
 			protected function identitySortComparteFucntion(obj1:Object,obj2:Object):int{
 				return genericNumberSortFunction(obj1,obj2,ReadResult.QUERY_LENGTH_TAG_NAME);			
 			}

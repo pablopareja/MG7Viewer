@@ -16,6 +16,7 @@ package com.era7.bioinfo.mg7.comm
 	import flash.net.URLRequestMethod;
 	import flash.net.URLVariables;
 	import flash.net.navigateToURL;
+	
 
 	public class MetagenomicsMapper extends BasicMapper
 	{
