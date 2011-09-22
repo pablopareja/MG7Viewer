@@ -18,7 +18,7 @@
 	</s:states>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<fx:XML id="graphmlXML" source="lalala.graphml"/>
+		<!--<fx:XML id="graphmlXML" source="lalala.graphml"/>-->
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
@@ -92,9 +92,9 @@
 			protected var textFormat:TextFormat;
 			
 			protected var indentedTreeLayout:IndentedTreeLayout =  new IndentedTreeLayout();	
-			protected var radialLayout:RadialTreeLayout = new RadialTreeLayout(50,false);
-			protected var dendogramLayout:DendrogramLayout = new DendrogramLayout();
-			protected var bubblesLayout:CirclePackingLayout = new CirclePackingLayout();
+			//protected var radialLayout:RadialTreeLayout = new RadialTreeLayout(50,false);
+			//protected var dendogramLayout:DendrogramLayout = new DendrogramLayout();
+			//protected var bubblesLayout:CirclePackingLayout = new CirclePackingLayout();
 			//protected var treeLayout:TreeMapLayout = new TreeMapLayout();
 			protected var currentLayout:Layout;						
 			
@@ -124,8 +124,8 @@
 				metagenomicsMapper.getSamples(this);
 				
 				//--------setting up layouts-----
-				radialLayout.useNodeSize = true;
-				bubblesLayout.spacing = 15;
+				/* radialLayout.useNodeSize = true;
+				bubblesLayout.spacing = 15; */
 				
 				currentLayout = indentedTreeLayout;
 				
@@ -308,7 +308,7 @@
 					currentLayout = indentedTreeLayout;
 					currentLayout.layoutAnchor = new Point(25,25);
 					
-				}else if(layoutValue == "Radial"){
+				}/* else if(layoutValue == "Radial"){
 					
 					currentLayout = radialLayout;
 					
@@ -320,7 +320,7 @@
 					
 					currentLayout = bubblesLayout;					
 					
-				}			
+				} */			
 				
 				flareVis.visualization.operators.add(currentLayout);				
 			    flareVis.visualization.update();
@@ -506,17 +506,11 @@
 									 width="100%" 
 									 height="100%"/>
 			<metagenomics:ReadResultViewer id="readResultViewer"
-										   width="100%"/>
-			
-		</s:VGroup>
-		
+										   width="100%"/>			
+		</s:VGroup>		
 	</mx:HDividedBox>	
 	<s:Panel includeIn="InitState" width="186" height="104" horizontalCenter="0" verticalCenter="-48">
 		<s:Label text="Please enter your password:" top="10" left="10"/>
 		<mx:TextInput id="lalalaTextInput" left="10" top="30" width="158" enabled="true" displayAsPassword="true" enter="lalalaTextInput_enterHandler(event)"/>
-	</s:Panel>
-	
-	<!--<s:NumericStepper minimum="1" maximum="5" stepSize="1" id="depthStepper" top="118" left="193"/>
-	<s:Button label="get taxonomy" left="242" top="118" click="button1_clickHandler(event)"/>
-	<s:Button label="get taxonomy for sample" left="372" top="118" click="button2_clickHandler(event)"/>-->		
+	</s:Panel>	
 </s:Application>
