@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   width="510" 
+			   height="168" 
+			   title="Download reads from taxon"  
+			   close="titlewindow1_closeHandler(event)">
+	<s:layout>
+		<s:VerticalLayout paddingLeft="20" 
+						  paddingRight="20" 
+						  paddingTop="20" 
+						  paddingBottom="20"/>
+	</s:layout>
+	
+	<fx:Script>
+		<![CDATA[
+			import com.era7.bioinfo.gui.events.UrlEvent;
+			import com.era7.bioinfo.mg7.events.DownloadReadsEvent;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			
+			protected function sendButton_clickHandler(event:MouseEvent):void
+			{
+				var format:String = "";
+				if(xmlRadioButton.selected){
+					format = "xml";
+				}else if(multifastaRadioButton.selected){
+					format = "multifasta";
+				}
+				dispatchEvent(new DownloadReadsEvent(DownloadReadsEvent.DOWNLOAD_READS,format,includeDescendantsCheckBox.selected,true));
+			}
+			
+			protected function titlewindow1_closeHandler(event:CloseEvent):void
+			{
+				this.visible = false;
+			}
+			
+		]]>
+	</fx:Script>
+	
+	<fx:Declarations>
+		<s:RadioButtonGroup id="formatRadioButtonGroup"/>
+	</fx:Declarations>
+	<s:HGroup>
+		<s:Label text="You selected the taxon:" 
+				 fontWeight="bold"/>
+		<s:Label id="taxonLabel"/>
+	</s:HGroup>	
+	<s:CheckBox id="includeDescendantsCheckBox" 
+				label="Include descendants"/>
+	<s:Label text="File format:" 
+			 fontWeight="bold"/>
+	<s:HGroup>
+		<s:RadioButton id="multifastaRadioButton" 
+					   label="Multifasta" 
+					   groupName="formatRadioButtonGroup" 
+					   selected="true"/>
+		<s:RadioButton id="xmlRadioButton" 
+					   label="XML" 
+					   groupName="formatRadioButtonGroup" 
+					   selected="false"/>
+	</s:HGroup>
+	<s:HGroup>
+		<s:Button label="Send" 
+				  id="sendButton" click="sendButton_clickHandler(event)"/>
+	</s:HGroup>	
+</s:TitleWindow>

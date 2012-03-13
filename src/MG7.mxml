@@ -18,13 +18,15 @@
 	</s:states>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<fx:XML id="graphmlXML" source="lalala.graphml"/>
+		<fx:XML id="graphmlXML" source="lalala.graphml"/>		
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
 			import com.era7.bioinfo.mg7.MG7IconsManager;
-			import com.era7.bioinfo.mg7.comm.MetagenomicsMapper;
+			import com.era7.bioinfo.mg7.comm.MG7Mapper;
 			import com.era7.bioinfo.mg7.comm.RequestList;
+			import com.era7.bioinfo.mg7.events.DownloadReadsEvent;
+			import com.era7.bioinfo.mg7.gui.DownloadReadsTitleWindow;
 			import com.era7.bioinfo.xml.metagenomics.ReadResult;
 			import com.era7.bioinfo.xml.metagenomics.Sample;
 			import com.era7.bioinfo.xml.ncbi.NCBITaxonomyNode;
@@ -75,6 +77,7 @@
 			import mx.events.FlexEvent;
 			import mx.events.ListEvent;
 			import mx.events.StateChangeEvent;
+			import mx.managers.PopUpManager;
 			
 			import spark.events.IndexChangeEvent;
 			
@@ -85,7 +88,7 @@
 			protected var treeDataSet:DataSet = null;
 					
 			
-			protected var metagenomicsMapper:MetagenomicsMapper = null;
+			protected var mg7Mapper:MG7Mapper = null;
 									
 			protected var selectedTaxId:int = 1; 
 			
@@ -100,6 +103,8 @@
 			
 			protected var converter:GraphMLConverter;
 			
+			protected var downloadReadsTitleWindow:DownloadReadsTitleWindow = null;
+			
 			
 			protected function baseStateEnterStateHandler(event:Event):void
 			{	
@@ -107,7 +112,7 @@
 				readResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onReadResultsDataGridItemClick);
 				taxonomyResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onTaxonomyResultsDataGridItemClick);
 				
-				metagenomicsMapper = new MetagenomicsMapper();
+				mg7Mapper = new MG7Mapper();
 								
 				MainManager.ADD_SESSION_ID_TO_REQUEST = false;
 				MainManager.DEBUG_MODE = false;
@@ -121,7 +126,7 @@
 				textFormat.font = "Arial, Verdana, Helvetica";
 				
 													
-				metagenomicsMapper.getSamples(this);
+				mg7Mapper.getSamples(this);
 				
 				//--------setting up layouts-----
 				radialLayout.useNodeSize = true;
@@ -132,6 +137,17 @@
 				/* treeDataSet = converter.parse(graphmlXML);				
 				updateVisualization();   */
 								
+			}
+			
+			protected function initDownloadReadsTitleWindow():void{
+				if(downloadReadsTitleWindow == null){
+					downloadReadsTitleWindow = DownloadReadsTitleWindow(PopUpManager.createPopUp(this,DownloadReadsTitleWindow,true));
+					downloadReadsTitleWindow.addEventListener(DownloadReadsEvent.DOWNLOAD_READS, onDownloadReads);
+					PopUpManager.centerPopUp(downloadReadsTitleWindow);
+				}
+				PopUpManager.bringToFront(downloadReadsTitleWindow);
+				downloadReadsTitleWindow.visible = true;
+				
 			}
 			
 			
@@ -271,7 +287,7 @@
 				var taxon:NCBITaxonomyNode = new NCBITaxonomyNode();
 				taxon.taxId = ""+selectedTaxId;
 				
-				metagenomicsMapper.getSampleReadResultsForTaxon(sample,taxon,this);
+				mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,this);
 			}
 
 
@@ -279,10 +295,10 @@
 				var selectedSample:Sample = new Sample(XML(samplesComboBox.selectedItem));
 				
 				//---taxonomy tree---
-				metagenomicsMapper.getWholeTaxonomyTreeForSample(selectedSample,this);
+				mg7Mapper.getWholeTaxonomyTreeForSample(selectedSample,this);
 				
 				//---taxonomy table----
-				metagenomicsMapper.getSampleTaxonomyResultsTable(selectedSample,this);
+				mg7Mapper.getSampleTaxonomyResultsTable(selectedSample,this);
 			}
 			
 			
@@ -332,14 +348,14 @@
 			private function onReadResultsDataGridItemClick(event:ListEvent):void{
 				if(readResultsDataGrid.dataGrid.selectedItem != null){
 					var temp:ReadResult = new ReadResult(XML(readResultsDataGrid.dataGrid.selectedItem));
-					metagenomicsMapper.getReadResult(temp,this);
+					mg7Mapper.getReadResult(temp,this);
 				}
 			}
 			private function onTaxonomyResultsDataGridItemClick(event:ListEvent):void{
 				if(taxonomyResultsDataGrid.dataGrid.selectedItem != null){
 					var taxon:NCBITaxonomyNode = new NCBITaxonomyNode(XML(taxonomyResultsDataGrid.dataGrid.selectedItem));
 					var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
-					metagenomicsMapper.getSampleReadResultsForTaxon(sample,taxon,this);
+					mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,this);
 				}
 			}
 			
@@ -351,10 +367,14 @@
 
 			protected function downloadTaxonResultsButton_clickHandler(event:MouseEvent):void
 			{
+				initDownloadReadsTitleWindow();				
+			}
+			
+			protected function onDownloadReads(event:DownloadReadsEvent):void{
 				var taxon:NCBITaxonomyNode = new NCBITaxonomyNode();
 				taxon.taxId = ""+selectedTaxId;
-				var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
-				metagenomicsMapper.downloadSampleReadResultsForTaxon(sample,taxon,this);
+				var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));			
+				mg7Mapper.downloadSampleReadResultsForTaxon(sample,taxon,event.getFormat(),event.getIncludeDescendants(),this);
 			}
 
 
@@ -498,6 +518,7 @@
 			<mx:HBox width="100%" verticalAlign="middle"  backgroundColor="#FAFAFA">
 				<s:Label text="Taxon selected:" fontWeight="bold"/>
 				<s:Label id="selectedTaxonLabel"/>
+				<mx:Spacer width="100%"/>
 				<s:Button label="Download taxon results" 
 						  id="downloadTaxonResultsButton" 
 						  click="downloadTaxonResultsButton_clickHandler(event)"/>
@@ -513,7 +534,13 @@
 	</mx:HDividedBox>	
 	<s:Panel includeIn="InitState" width="186" height="104" horizontalCenter="0" verticalCenter="-48">
 		<s:Label text="Please enter your password:" top="10" left="10"/>
-		<mx:TextInput id="lalalaTextInput" left="10" top="30" width="158" enabled="true" displayAsPassword="true" enter="lalalaTextInput_enterHandler(event)"/>
+		<mx:TextInput id="lalalaTextInput" 
+					  left="10" 
+					  top="30" 
+					  width="158" 
+					  enabled="true" 
+					  displayAsPassword="true" 
+					  enter="lalalaTextInput_enterHandler(event)"/>
 	</s:Panel>
 	
 	<!--<s:NumericStepper minimum="1" maximum="5" stepSize="1" id="depthStepper" top="118" left="193"/>
