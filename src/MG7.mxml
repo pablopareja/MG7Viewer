@@ -14,7 +14,7 @@
 			   currentState="InitState" 
 			   xmlns:gui2="com.era7.util.gui.*">
 	<s:states>
-		<s:State name="BaseState" enterState="baseStateEnterStateHandler(event)" />
+		<s:State name="BaseState"/>
 		<s:State name="InitState"/>
 		<s:State name="LoadingState"/>
 	</s:states>
@@ -112,7 +112,7 @@
 			protected var treeLoaded:Boolean = false;
 			
 			
-			protected function baseStateEnterStateHandler(event:Event):void
+			protected function initMainStuff():void
 			{	
 				
 				readResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onReadResultsDataGridItemClick);
@@ -428,16 +428,11 @@
 			protected function lalalaTextInput_enterHandler(event:FlexEvent):void
 			{
 				if(lalalaTextInput.text == "MG7mg7MG7"){
-					currentState = "BaseState";
+					currentState = "LoadingState";
+					initMainStuff();
 				}else{
 					Alert.show("Please enter a valid password");
 				}
-			}
-
-
-			protected function state1_enterStateHandler(event:FlexEvent):void
-			{
-				// TODO Auto-generated method stub
 			}
 
 
