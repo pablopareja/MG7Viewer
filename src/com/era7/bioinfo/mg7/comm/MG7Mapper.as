@@ -55,6 +55,7 @@ package com.era7.bioinfo.mg7.comm
 		}
 		
 		public function getWholeTaxonomyTreeForSample(sample:Sample,
+													  mode:String,
 													  serverCallable:ServerCallable):void{
 			
 			var request:Request = new Request();
@@ -62,6 +63,7 @@ package com.era7.bioinfo.mg7.comm
 			
 			var params:Parameters = new Parameters();
 			params.addParametersContent(sample.getContent());
+			params.addParametersContent(<mode>{mode}</mode>);
 			request.setParameters(params);
 			
 			mainManager.loadRequest(request, serverCallable, UrlManager.GET_WHOLE_TAXONOMY_TREE_FOR_SAMPLE);
@@ -69,6 +71,7 @@ package com.era7.bioinfo.mg7.comm
 		}
 		
 		public function getSampleTaxonomyResultsTable(sample:Sample,
+													  mode:String,
 													  serverCallable:ServerCallable):void{
 			
 			var request:Request = new Request();
@@ -76,6 +79,7 @@ package com.era7.bioinfo.mg7.comm
 			
 			var params:Parameters = new Parameters();
 			params.addParametersContent(sample.getContent());
+			params.addParametersContent(<mode>{mode}</mode>);
 			request.setParameters(params);
 			
 			mainManager.loadRequest(request, serverCallable, UrlManager.GET_SAMPLE_TAXONOMY_RESULTS_TABLE_URL);

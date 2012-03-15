@@ -18,7 +18,8 @@
 	</s:states>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
-		<fx:XML id="graphmlXML" source="lalala.graphml"/>		
+		<fx:XML id="graphmlXML" source="lalala.graphml"/>	
+		<s:RadioButtonGroup id="modeRadioButtonGroup"/>
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
@@ -145,6 +146,7 @@
 					downloadReadsTitleWindow.addEventListener(DownloadReadsEvent.DOWNLOAD_READS, onDownloadReads);
 					PopUpManager.centerPopUp(downloadReadsTitleWindow);
 				}
+				downloadReadsTitleWindow.setTaxonSelected(selectedTaxonLabel.text);
 				PopUpManager.bringToFront(downloadReadsTitleWindow);
 				downloadReadsTitleWindow.visible = true;
 				
@@ -294,11 +296,16 @@
 			protected function getCurrentSampleTreeAndTable():void{
 				var selectedSample:Sample = new Sample(XML(samplesComboBox.selectedItem));
 				
+				var mode:String = "direct";
+				if(lcaRadioButton.selected){
+					mode = "lca";
+				}
+				
 				//---taxonomy tree---
-				mg7Mapper.getWholeTaxonomyTreeForSample(selectedSample,this);
+				mg7Mapper.getWholeTaxonomyTreeForSample(selectedSample,mode,this);
 				
 				//---taxonomy table----
-				mg7Mapper.getSampleTaxonomyResultsTable(selectedSample,this);
+				mg7Mapper.getSampleTaxonomyResultsTable(selectedSample,mode,this);
 			}
 			
 			
@@ -402,6 +409,12 @@
 				// TODO Auto-generated method stub
 			}
 
+
+			protected function modeRadioButton_changeHandler():void
+			{
+				
+			}
+
 		]]>
 	</fx:Script>
 	<s:layout.BaseState>
@@ -453,8 +466,17 @@
 					 dataProvider="{samplesDataProvider.sample}"
 					 labelField="name" 
 					 change="samplesComboBox_changeHandler(event)"/>
-	</s:HGroup>
-	
+		<s:RadioButton id="directRadioButton"
+					   label="Direct"
+					   selected="true"
+					   group="{modeRadioButtonGroup}"
+					   change="modeRadioButton_changeHandler()"/>
+		<s:RadioButton id="lcaRadioButton"
+					   label="LCA"
+					   selected="false"
+					   group="{modeRadioButtonGroup}"
+					   change="modeRadioButton_changeHandler()"/>
+	</s:HGroup>	
 	<mx:HDividedBox width="100%"
 					height="100%" includeIn="BaseState">
 		<mx:TabNavigator width="100%" 

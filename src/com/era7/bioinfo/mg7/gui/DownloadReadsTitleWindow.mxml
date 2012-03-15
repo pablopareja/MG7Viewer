@@ -37,13 +37,17 @@
 				this.visible = false;
 			}
 			
+			public function setTaxonSelected(taxonName:String):void{
+				taxonLabel.text = taxonName;
+			}
+			
 		]]>
 	</fx:Script>
 	
 	<fx:Declarations>
 		<s:RadioButtonGroup id="formatRadioButtonGroup"/>
 	</fx:Declarations>
-	<s:HGroup>
+	<s:HGroup verticalAlign="middle">
 		<s:Label text="You selected the taxon:" 
 				 fontWeight="bold"/>
 		<s:Label id="taxonLabel"/>
