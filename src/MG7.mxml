@@ -11,10 +11,12 @@
 			   xmlns:flex="flare.flex.*" 
 			   xmlns:gui="com.era7.bioinfo.mg7.gui.*" 
 			   xmlns:metagenomics="com.era7.bioinfo.gui.metagenomics.*" 
-			   currentState="InitState">
+			   currentState="InitState" 
+			   xmlns:gui2="com.era7.util.gui.*">
 	<s:states>
 		<s:State name="BaseState" enterState="baseStateEnterStateHandler(event)" />
 		<s:State name="InitState"/>
+		<s:State name="LoadingState"/>
 	</s:states>
 	<fx:Declarations>
 		<!-- Place non-visual elements (e.g., services, value objects) here -->
@@ -106,6 +108,9 @@
 			
 			protected var downloadReadsTitleWindow:DownloadReadsTitleWindow = null;
 			
+			protected var tableLoaded:Boolean = false;
+			protected var treeLoaded:Boolean = false;
+			
 			
 			protected function baseStateEnterStateHandler(event:Event):void
 			{	
@@ -173,6 +178,11 @@
 					treeDataSet = converter.parse(response.getContent().graphml[0]);
 					updateVisualization();
 					
+					treeLoaded = true;
+					if(tableLoaded){
+						currentState = "BaseState";
+					}
+					
 				}else if(response.getMethod() == RequestList.GET_SAMPLE_READ_RESULTS_FOR_TAXON_REQUEST){
 					
 					var readResultsXML:XML = response.getContent().read_results[0];
@@ -186,6 +196,8 @@
 									"to complete in the case where the number of read results is large.");
 					}
 					
+					currentState = "BaseState";
+										
 				}else if(response.getMethod() == RequestList.GET_READ_RESULT_REQUEST){
 					
 					readResultViewer.setReadResult(new ReadResult(XML(response.getContent().child(ReadResult.TAG_NAME)[0])));
@@ -193,6 +205,11 @@
 				}else if(response.getMethod() == RequestList.GET_SAMPLE_TAXONOMY_RESULTS_TABLE_REQUEST){
 					
 					taxonomyResultsDataGrid.setXMLListSource(response.getContent().child(NCBITaxonomyNode.TAG_NAME));
+					
+					tableLoaded = true;
+					if(treeLoaded){
+						currentState = "BaseState";
+					}
 					
 				}
 			}
@@ -289,23 +306,34 @@
 				var taxon:NCBITaxonomyNode = new NCBITaxonomyNode();
 				taxon.taxId = ""+selectedTaxId;
 				
-				mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,this);
+				mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,getMode(),this);
+				
+				currentState = "LoadingState";
 			}
 
-
-			protected function getCurrentSampleTreeAndTable():void{
-				var selectedSample:Sample = new Sample(XML(samplesComboBox.selectedItem));
-				
+			
+			protected function getMode():String{
 				var mode:String = "direct";
 				if(lcaRadioButton.selected){
 					mode = "lca";
 				}
+				return mode;
+			}
+			
+
+			protected function getCurrentSampleTreeAndTable():void{
+				
+				var selectedSample:Sample = new Sample(XML(samplesComboBox.selectedItem));
 				
 				//---taxonomy tree---
-				mg7Mapper.getWholeTaxonomyTreeForSample(selectedSample,mode,this);
+				mg7Mapper.getWholeTaxonomyTreeForSample(selectedSample,getMode(),this);
 				
 				//---taxonomy table----
-				mg7Mapper.getSampleTaxonomyResultsTable(selectedSample,mode,this);
+				mg7Mapper.getSampleTaxonomyResultsTable(selectedSample,getMode(),this);
+				
+				this.currentState = "LoadingState";
+				tableLoaded = false;
+				treeLoaded = false;
 			}
 			
 			
@@ -355,14 +383,17 @@
 			private function onReadResultsDataGridItemClick(event:ListEvent):void{
 				if(readResultsDataGrid.dataGrid.selectedItem != null){
 					var temp:ReadResult = new ReadResult(XML(readResultsDataGrid.dataGrid.selectedItem));
-					mg7Mapper.getReadResult(temp,this);
+					mg7Mapper.getReadResult(temp,this);					
 				}
 			}
 			private function onTaxonomyResultsDataGridItemClick(event:ListEvent):void{
 				if(taxonomyResultsDataGrid.dataGrid.selectedItem != null){
 					var taxon:NCBITaxonomyNode = new NCBITaxonomyNode(XML(taxonomyResultsDataGrid.dataGrid.selectedItem));
 					var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
-					mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,this);
+					mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,getMode(),this);
+					selectedTaxonLabel.text = taxon.scientificName;
+					
+					currentState = "LoadingState";
 				}
 			}
 			
@@ -381,7 +412,7 @@
 				var taxon:NCBITaxonomyNode = new NCBITaxonomyNode();
 				taxon.taxId = ""+selectedTaxId;
 				var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));			
-				mg7Mapper.downloadSampleReadResultsForTaxon(sample,taxon,event.getFormat(),event.getIncludeDescendants(),this);
+				mg7Mapper.downloadSampleReadResultsForTaxon(sample,taxon,event.getFormat(),getMode(),event.getIncludeDescendants(),this);
 			}
 
 
@@ -412,7 +443,7 @@
 
 			protected function modeRadioButton_changeHandler():void
 			{
-				
+				getCurrentSampleTreeAndTable();
 			}
 
 		]]>
@@ -420,6 +451,9 @@
 	<s:layout.BaseState>
 		<s:VerticalLayout paddingLeft="15" paddingRight="15" paddingTop="15" paddingBottom="15"/>
 	</s:layout.BaseState>
+	<s:layout.LoadingState>
+		<s:VerticalLayout paddingLeft="15" paddingRight="15" paddingTop="15" paddingBottom="15"/>
+	</s:layout.LoadingState>
 	<s:HGroup  
 			  verticalAlign="middle" 
 			  paddingTop="0" 
@@ -429,7 +463,7 @@
 			  left="15" 
 			  top="15" 
 			  right="15" 
-			  height="80" width="100%" includeIn="BaseState">
+			  height="80" width="100%" includeIn="BaseState,LoadingState">
 		<mx:Canvas 
 				   cornerRadius="15" 
 				   backgroundColor="#FFFFFF" 
@@ -459,7 +493,9 @@
  left="10"/>
 		</mx:Canvas>
 	</s:HGroup>
-	<s:HGroup verticalAlign="middle" includeIn="BaseState">
+	<s:HGroup verticalAlign="middle" 
+			  includeIn="BaseState,LoadingState"
+			  enabled.LoadingState="false">
 		<s:Label text="Sample:" fontWeight="bold" color="#FFFFFF"/>
 		<mx:ComboBox x="15" y="118" 
 					 id="samplesComboBox"
@@ -470,18 +506,22 @@
 					   label="Direct"
 					   selected="true"
 					   group="{modeRadioButtonGroup}"
-					   change="modeRadioButton_changeHandler()"/>
+					   change="modeRadioButton_changeHandler()" 
+					   fontWeight="bold" 
+					   color="#FFFFFF"/>
 		<s:RadioButton id="lcaRadioButton"
 					   label="LCA"
 					   selected="false"
 					   group="{modeRadioButtonGroup}"
-					   change="modeRadioButton_changeHandler()"/>
+					   change="modeRadioButton_changeHandler()" 
+					   fontWeight="bold" 
+					   color="#FFFFFF"/>
 	</s:HGroup>	
 	<mx:HDividedBox width="100%"
-					height="100%" includeIn="BaseState">
+					height="100%" includeIn="BaseState,LoadingState" enabled.LoadingState="false">
 		<mx:TabNavigator width="100%" 
 						 height="100%"
-						 creationPolicy="all">
+						 creationPolicy="all" enabled.LoadingState="false">
 			<mx:VBox id="graphPanel" 
 					  verticalAlign="top" 
 					  horizontalAlign="left" 
@@ -554,7 +594,11 @@
 		</s:VGroup>
 		
 	</mx:HDividedBox>	
-	<s:Panel includeIn="InitState" width="186" height="104" horizontalCenter="0" verticalCenter="-48">
+	<s:Panel includeIn="InitState" 
+			 width="186" 
+			 height="104" 
+			 horizontalCenter="0" 
+			 verticalCenter="-48">
 		<s:Label text="Please enter your password:" top="10" left="10"/>
 		<mx:TextInput id="lalalaTextInput" 
 					  left="10" 

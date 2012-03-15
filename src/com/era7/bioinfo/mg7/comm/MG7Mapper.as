@@ -102,6 +102,7 @@ package com.era7.bioinfo.mg7.comm
 		
 		public function getSampleReadResultsForTaxon(sample:Sample,
 									  taxonNode:NCBITaxonomyNode,
+									  mode:String,
 									  serverCallable:ServerCallable):void{
 			
 			var request:Request = new Request();
@@ -109,6 +110,7 @@ package com.era7.bioinfo.mg7.comm
 			
 			var params:Parameters = new Parameters();
 			params.addParametersContent(sample.getContent());
+			params.addParametersContent(<mode>{mode}</mode>);
 			params.addParametersContent(taxonNode.getContent());
 			request.setParameters(params);
 			
@@ -119,6 +121,7 @@ package com.era7.bioinfo.mg7.comm
 		public function downloadSampleReadResultsForTaxon(sample:Sample,
 														  taxonNode:NCBITaxonomyNode,
 														  format:String,
+														  mode:String,
 														  includeDescendants:Boolean,
 														  serverCallable:ServerCallable):void{
 			
@@ -129,6 +132,7 @@ package com.era7.bioinfo.mg7.comm
 			params.addParametersContent(sample.getContent());
 			params.addParametersContent(taxonNode.getContent());
 			params.addParametersContent(<format>{format}</format>);
+			params.addParametersContent(<mode>{mode}</mode>);
 			params.addParametersContent(<include_descendants>{includeDescendants}</include_descendants>);
 			params.addParametersContent(<file_name>ProteinMultifasta</file_name>);
 			request.setParameters(params);
