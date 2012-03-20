@@ -134,7 +134,7 @@ package com.era7.bioinfo.mg7.comm
 			params.addParametersContent(<format>{format}</format>);
 			params.addParametersContent(<mode>{mode}</mode>);
 			params.addParametersContent(<include_descendants>{includeDescendants}</include_descendants>);
-			params.addParametersContent(<file_name>ProteinMultifasta</file_name>);
+			params.addParametersContent(<file_name>{taxonNode.scientificName}</file_name>);
 			request.setParameters(params);
 			
 			var urlRequest:URLRequest = new URLRequest(UrlManager.DOWNLOAD_SAMPLE_READ_RESULTS_FOR_TAXON_URL);

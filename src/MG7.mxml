@@ -265,14 +265,14 @@
 					
 				});
 								
-				var expandControl:ExpandControl = new ExpandControl(NodeSprite);
+				//var expandControl:ExpandControl = new ExpandControl(NodeSprite);
 				//----pan zoom control---
 				var panZoomControl:PanZoomControl = new PanZoomControl();
 				panZoomControl.hitArea = flareVis;
 				panZoomControl.attach(flareVis.visualization);
 				var selectionControl:SelectionControl = new SelectionControl();
 				
-				flareVis.visualization.controls.add(expandControl);
+				//flareVis.visualization.controls.add(expandControl);
 				flareVis.visualization.controls.add(panZoomControl);
 				flareVis.visualization.controls.add(selectionControl);
 				//expandControl.object.addEventListener(MouseEvent.MOUSE_DOWN, onNodeClick);
@@ -388,11 +388,15 @@
 			}
 			private function onTaxonomyResultsDataGridItemClick(event:ListEvent):void{
 				if(taxonomyResultsDataGrid.dataGrid.selectedItem != null){
+					
 					var taxon:NCBITaxonomyNode = new NCBITaxonomyNode(XML(taxonomyResultsDataGrid.dataGrid.selectedItem));
 					var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));
-					mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,getMode(),this);
-					selectedTaxonLabel.text = taxon.scientificName;
 					
+					selectedTaxonLabel.text = taxon.scientificName;
+					selectedTaxId = parseInt(taxon.taxId);
+					
+					mg7Mapper.getSampleReadResultsForTaxon(sample,taxon,getMode(),this);
+										
 					currentState = "LoadingState";
 				}
 			}
@@ -411,6 +415,7 @@
 			protected function onDownloadReads(event:DownloadReadsEvent):void{
 				var taxon:NCBITaxonomyNode = new NCBITaxonomyNode();
 				taxon.taxId = ""+selectedTaxId;
+				taxon.scientificName = selectedTaxonLabel.text;
 				var sample:Sample = new Sample(XML(samplesComboBox.selectedItem));			
 				mg7Mapper.downloadSampleReadResultsForTaxon(sample,taxon,event.getFormat(),getMode(),event.getIncludeDescendants(),this);
 			}

@@ -10,8 +10,8 @@ package com.era7.bioinfo.mg7.events
 		public static const DOWNLOAD_READS:String = "downloadReads" + SUFIX;
 		
 		
-		protected var includeDescendants:Boolean = false;
-		protected var format:String = "";
+		protected var includeDescendantss:Boolean = false;
+		protected var formatt:String = "";
 		
 		/*
 		* CONSTRUCTOR
@@ -23,8 +23,8 @@ package com.era7.bioinfo.mg7.events
 										   cancelable:Boolean=false)
 		{
 			super(type, bubbles, cancelable);
-			format = format;
-			includeDescendants = includeDescendants;
+			formatt = format;
+			includeDescendantss = includeDescendants;
 		}
 		
 		/*
@@ -32,20 +32,20 @@ package com.era7.bioinfo.mg7.events
 		*  Clone function
 		*/
 		public override function clone():Event{						
-			return new DownloadReadsEvent(this.type,this.format,this.includeDescendants,this.bubbles,cancelable);
+			return new DownloadReadsEvent(this.type,this.formatt,this.includeDescendantss,this.bubbles,cancelable);
 		}
 		
 		/*
 		* 	GET FORMAT
 		*/
 		public function getFormat():String{
-			return format;
+			return formatt;
 		}
 		/*
 		* 	GET INCLUDE DESCENDANTS
 		*/
 		public function getIncludeDescendants():Boolean{
-			return includeDescendants;
+			return includeDescendantss;
 		}
 	}
 }
