@@ -30,8 +30,8 @@
 			import com.era7.bioinfo.mg7.comm.RequestList;
 			import com.era7.bioinfo.mg7.events.DownloadReadsEvent;
 			import com.era7.bioinfo.mg7.gui.DownloadReadsTitleWindow;
-			import com.era7.bioinfo.xml.metagenomics.ReadResult;
-			import com.era7.bioinfo.xml.metagenomics.Sample;
+			import com.era7.bioinfo.xml.mg7.ReadResult;
+			import com.era7.bioinfo.xml.mg7.Sample;
 			import com.era7.bioinfo.xml.ncbi.NCBITaxonomyNode;
 			import com.era7.communication.managers.MainManager;
 			import com.era7.communication.xml.Request;

@@ -7,7 +7,7 @@
 	</fx:Declarations>
 	<fx:Script>
 		<![CDATA[
-			import com.era7.bioinfo.xml.mg7.ReadResult;
+			import com.era7.bioinfo.xml.blast.Hit;
 			
 			[Bindable]
 			protected var xml:XML = null;
@@ -17,11 +17,8 @@
 				xml = source;
 			}
 			
-			protected function identitySortComparteFucntion(obj1:Object,obj2:Object):int{
+			protected function numSortComparteFucntion(obj1:Object,obj2:Object):int{
 				return genericNumberSortFunction(obj1,obj2,ReadResult.QUERY_LENGTH_TAG_NAME);			
-			}
-			protected function queryLengthSortCompareFunction(obj1:Object,obj2:Object):int{
-				return genericNumberSortFunction(obj1,obj2,ReadResult.IDENTITY_TAG_NAME);			
 			}
 			protected function genericNumberSortFunction(obj1:Object,obj2:Object,tagName:String):int{
 				var xml1:XML = XML(obj1);
@@ -42,20 +39,16 @@
 		]]>
 	</fx:Script>
 	<mx:DataGrid id="dataGrid"
-				 dataProvider="{xml.child(ReadResult.TAG_NAME)}"
-				  width="100%" height="100%">
+				 dataProvider="{xml.child(Hit.TAG_NAME)}"
+				 width="100%" height="100%">
 		<mx:columns>
-			<mx:DataGridColumn id="readIdColumn" 
-							   dataField="{ReadResult.READ_ID_TAG_NAME}"
-							   headerText="Read ID"/>
-			<mx:DataGridColumn id="identityColumn" 
-							   dataField="{ReadResult.IDENTITY_TAG_NAME}"
-							   headerText="Identity"
-							   sortCompareFunction="identitySortComparteFucntion"/>
-			<mx:DataGridColumn id="queryLengthColumn" 
-							   dataField="{ReadResult.QUERY_LENGTH_TAG_NAME}"
-							   headerText="Query length"
-							   sortCompareFunction="queryLengthSortCompareFunction"/>
+			<mx:DataGridColumn id="numColumn" 
+							   dataField="{Hit.NUM_TAG_NAME}"
+							   headerText="Hit num"
+							   sortCompareFunction="numSortCompareFunction"/>
+			<mx:DataGridColumn id="hitDefColumn" 
+							   dataField="{Hit.HIT_DEF_TAG_NAME}"
+							   headerText="Hit def"/>
 		</mx:columns>		
 	</mx:DataGrid>
 </s:VGroup>

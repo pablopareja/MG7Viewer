@@ -2,8 +2,8 @@ package com.era7.bioinfo.mg7.comm
 {
 	import com.era7.bioinfo.mg7.comm.RequestList;
 	import com.era7.bioinfo.mg7.comm.UrlManager;
-	import com.era7.bioinfo.xml.metagenomics.ReadResult;
-	import com.era7.bioinfo.xml.metagenomics.Sample;
+	import com.era7.bioinfo.xml.mg7.ReadResult;
+	import com.era7.bioinfo.xml.mg7.Sample;
 	import com.era7.bioinfo.xml.ncbi.NCBITaxonomyNode;
 	import com.era7.communication.interfaces.ServerCallable;
 	import com.era7.communication.interfaces.ServerUploadable;
