@@ -126,7 +126,7 @@
 				mg7Mapper = new MG7Mapper();
 								
 				MainManager.ADD_SESSION_ID_TO_REQUEST = false;
-				MainManager.DEBUG_MODE = true;
+				MainManager.DEBUG_MODE = false;
 				MainManager.REQUEST_TIMEOUT = 3600;
 				
 				converter = new GraphMLConverter();
@@ -192,6 +192,9 @@
 					
 					var readResultsXML:XML = response.getContent().read_results[0];
 					readResultsDataGrid.setXMLSource(readResultsXML);
+					hitsDataGrid.setXMLSource(null);					
+					hspsDataGrid.setXMLSource(null);
+					hspViewer.setHsp(null);
 					
 					if(readResultsXML.@max_results_limit_reached == "true"){
 						Alert.show("The selected taxon has more than 1000 read results associated.\n" +
@@ -395,7 +398,10 @@
 			private function onHitsDataGridItemClick(event:ListEvent):void{
 				if(hitsDataGrid.dataGrid.selectedItem != null){
 					var tempHit:Hit = new Hit(XML(hitsDataGrid.dataGrid.selectedItem));
-					hspsDataGrid.setXMLSource(tempHit.getContent().hsps[0]);
+					//Debugger.appendText("1\n" + tempHit.getContent().toXMLString(),Debugger.ERROR_MODE);
+					var hspsXml:XML = tempHit.getContent().Hit_hsps[0];
+					hspsDataGrid.setXMLSource(hspsXml);
+					//Debugger.appendText("2\n" + hspsXml.toXMLString(), Debugger.ERROR_MODE);
 				}
 			}
 			private function onHspsDataGridItemClick(event:ListEvent):void{
@@ -617,7 +623,7 @@
 				<hsp:HspsDataGrid id="hspsDataGrid"
 								  width="100%"/>
 				<hsp:HspViewer id="hspViewer"
-							   width="100%"/>
+							   width="100%" backgroundColor.BaseState="#C2C2C2"/>
 			</mx:VDividedBox>
 		</s:VGroup>
 	</mx:HDividedBox>	
