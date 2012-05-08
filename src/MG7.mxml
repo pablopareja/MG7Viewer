@@ -12,7 +12,7 @@
 			   xmlns:gui="com.era7.bioinfo.mg7.gui.*" 
 			   xmlns:metagenomics="com.era7.bioinfo.gui.metagenomics.*" 
 			   currentState="InitState" 
-			   xmlns:gui2="com.era7.util.gui.*">
+			   xmlns:gui2="com.era7.util.gui.*" xmlns:hit="com.era7.bioinfo.gui.blast.hit.*" xmlns:hsp="com.era7.bioinfo.gui.blast.hsp.*">
 	<s:states>
 		<s:State name="BaseState"/>
 		<s:State name="InitState"/>
@@ -30,6 +30,8 @@
 			import com.era7.bioinfo.mg7.comm.RequestList;
 			import com.era7.bioinfo.mg7.events.DownloadReadsEvent;
 			import com.era7.bioinfo.mg7.gui.DownloadReadsTitleWindow;
+			import com.era7.bioinfo.xml.blast.Hit;
+			import com.era7.bioinfo.xml.blast.Hsp;
 			import com.era7.bioinfo.xml.mg7.ReadResult;
 			import com.era7.bioinfo.xml.mg7.Sample;
 			import com.era7.bioinfo.xml.ncbi.NCBITaxonomyNode;
@@ -117,11 +119,14 @@
 				
 				readResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onReadResultsDataGridItemClick);
 				taxonomyResultsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onTaxonomyResultsDataGridItemClick);
+				hitsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onHitsDataGridItemClick);
+				hspsDataGrid.dataGrid.addEventListener(ListEvent.ITEM_CLICK, onHspsDataGridItemClick);
+				
 				
 				mg7Mapper = new MG7Mapper();
 								
 				MainManager.ADD_SESSION_ID_TO_REQUEST = false;
-				MainManager.DEBUG_MODE = false;
+				MainManager.DEBUG_MODE = true;
 				MainManager.REQUEST_TIMEOUT = 3600;
 				
 				converter = new GraphMLConverter();
@@ -200,7 +205,8 @@
 										
 				}else if(response.getMethod() == RequestList.GET_READ_RESULT_REQUEST){
 					
-					readResultViewer.setReadResult(new ReadResult(XML(response.getContent().child(ReadResult.TAG_NAME)[0])));
+					var tempReadResult:ReadResult = new ReadResult(XML(response.getContent().child(ReadResult.TAG_NAME)[0]));
+					hitsDataGrid.setXMLSource(tempReadResult.getContent().hits[0]);
 					
 				}else if(response.getMethod() == RequestList.GET_SAMPLE_TAXONOMY_RESULTS_TABLE_REQUEST){
 					
@@ -384,6 +390,18 @@
 				if(readResultsDataGrid.dataGrid.selectedItem != null){
 					var temp:ReadResult = new ReadResult(XML(readResultsDataGrid.dataGrid.selectedItem));
 					mg7Mapper.getReadResult(temp,this);					
+				}
+			}
+			private function onHitsDataGridItemClick(event:ListEvent):void{
+				if(hitsDataGrid.dataGrid.selectedItem != null){
+					var tempHit:Hit = new Hit(XML(hitsDataGrid.dataGrid.selectedItem));
+					hspsDataGrid.setXMLSource(tempHit.getContent().hsps[0]);
+				}
+			}
+			private function onHspsDataGridItemClick(event:ListEvent):void{
+				if(hspsDataGrid.dataGrid.selectedItem != null){
+					var tempHsp:Hsp = new Hsp(XML(hspsDataGrid.dataGrid.selectedItem));
+					hspViewer.setHsp(tempHsp);
 				}
 			}
 			private function onTaxonomyResultsDataGridItemClick(event:ListEvent):void{
@@ -574,10 +592,12 @@
 												  paddingLeft="10"
 												  paddingRight="10"
 												  paddingTop="10"/>
-		</mx:TabNavigator>		
+		</mx:TabNavigator>	
 		<s:VGroup width="100%" 
 				  height="100%">
-			<mx:HBox width="100%" verticalAlign="middle"  backgroundColor="#FAFAFA">
+			<mx:HBox width="100%" 
+					 verticalAlign="middle"  
+					 backgroundColor="#FAFAFA">
 				<s:Label text="Taxon selected:" fontWeight="bold"/>
 				<s:Label id="selectedTaxonLabel"/>
 				<mx:Spacer width="100%"/>
@@ -585,14 +605,21 @@
 						  id="downloadTaxonResultsButton" 
 						  click="downloadTaxonResultsButton_clickHandler(event)"/>
 			</mx:HBox>
-			<gui:ReadResultsDataGrid id="readResultsDataGrid" 
-									 width="100%" 
-									 height="100%"/>
-			<metagenomics:ReadResultViewer id="readResultViewer"
-										   width="100%"/>
-			
+			<mx:VDividedBox width="100%" 
+							height="100%">			
+				<metagenomics:ReadResultsDataGrid id="readResultsDataGrid" 
+												  width="100%" 
+												  height="100%"
+												  />
+				<hit:HitsDataGrid id="hitsDataGrid" 
+								  width="100%"
+								  height="150"/>
+				<hsp:HspsDataGrid id="hspsDataGrid"
+								  width="100%"/>
+				<hsp:HspViewer id="hspViewer"
+							   width="100%"/>
+			</mx:VDividedBox>
 		</s:VGroup>
-		
 	</mx:HDividedBox>	
 	<s:Panel includeIn="InitState" 
 			 width="186" 
